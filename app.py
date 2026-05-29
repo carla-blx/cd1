@@ -196,7 +196,7 @@ with col2:
     """
     
     PAY_1 = st.slider(
-        "Estado de pago - Septiembre 2005",
+        "Estado de pago - Septiembre",
         -2,
         8,
         0,
@@ -204,7 +204,7 @@ with col2:
     )
     
     PAY_2 = st.slider(
-        "Estado de pago - Agosto 2005",
+        "Estado de pago - Agosto",
         -2,
         8,
         0,
@@ -212,7 +212,7 @@ with col2:
     )
     
     PAY_3 = st.slider(
-        "Estado de pago - Julio 2005",
+        "Estado de pago - Julio",
         -2,
         8,
         0,
@@ -220,7 +220,7 @@ with col2:
     )
     
     PAY_4 = st.slider(
-        "Estado de pago - Junio 2005",
+        "Estado de pago - Junio",
         -2,
         8,
         0,
@@ -228,7 +228,7 @@ with col2:
     )
     
     PAY_5 = st.slider(
-        "Estado de pago - Mayo 2005",
+        "Estado de pago - Mayo",
         -2,
         8,
         0,
@@ -236,7 +236,7 @@ with col2:
     )
     
     PAY_6 = st.slider(
-        "Estado de pago - Abril 2005",
+        "Estado de pago - Abril",
         -2,
         8,
         0,
