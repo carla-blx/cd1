@@ -2,7 +2,7 @@
 
 ## Contexto del problema
 
-Este proyecto predice si un cliente de tarjeta de crédito incurrirá en impago en el próximo mes, utilizando datos reales de clientes en Taiwán (abril-septiembre 2005). El objetivo es construir un modelo de clasificación binaria que supere a modelos clásicos, con interpretabilidad y despliegue interactivo.
+Este proyecto predice si un cliente de tarjeta de crédito caerá en impago en el próximo mes, utilizando datos reales de clientes en Taiwán (abril-septiembre 2005). El objetivo es construir un modelo de clasificación binaria que supere a modelos clásicos, con interpretabilidad y despliegue interactivo.
 
 ## Dataset
 
