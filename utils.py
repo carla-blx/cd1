@@ -137,13 +137,15 @@ def preprocess_input(data_dict: dict) -> np.ndarray:
     El pipeline espera: NUM_COLS (25) + CAT_COLS (3) = 28 columnas de entrada
     """
     
+    # Si el pipeline falló al cargar, intentar recrearlo
     if PIPELINE is None:
-        raise ValueError("No se pudo cargar el pipeline")
+        print("⚠️ Pipeline no disponible, intentando recrear...")
+        success = recreate_pipeline_from_vars()
+        if not success or PIPELINE is None:
+            raise ValueError("No se pudo cargar ni recrear el pipeline")
     
     # 1. Crear DataFrame con todos los datos
     df = pd.DataFrame([data_dict])
-    
-    print(f"Columnas iniciales: {df.columns.tolist()}")
     
     # 2. Aplicar mapeos categóricos
     df = aplicar_mapeos_categoricos(df)
@@ -151,39 +153,24 @@ def preprocess_input(data_dict: dict) -> np.ndarray:
     # 3. Crear features derivadas (esto agrega 5 nuevas columnas)
     df = crear_features_derivadas(df)
     
-    print(f"Después de features derivadas: {df.columns.tolist()}")
-    
-    # 4. IMPORTANTE: El pipeline espera las columnas en el orden: NUM_COLS + CAT_COLS
-    # NUM_COLS ya incluye las 5 features derivadas
+    # 4. El pipeline espera las columnas en el orden: NUM_COLS + CAT_COLS
     columnas_esperadas = NUM_COLS + CAT_COLS
     
-    print(f"Columnas esperadas por pipeline: {len(columnas_esperadas)}")
-    print(f"  Primeras 5 numéricas: {NUM_COLS[:5]}")
-    print(f"  Categóricas: {CAT_COLS}")
-    
-    # 5. Verificar que todas las columnas existan
+    # 5. Verificar que todas las columnas existan (agregar las que falten con 0)
     for col in columnas_esperadas:
         if col not in df.columns:
-            print(f"⚠️ Columna faltante: {col}, agregando con valor 0")
             df[col] = 0
     
     # 6. Seleccionar solo las columnas esperadas en el orden correcto
     df_final = df[columnas_esperadas]
     
-    print(f"Shape final antes de pipeline: {df_final.shape}")
-    print(f"Columnas: {df_final.columns.tolist()[:5]}... + {CAT_COLS}")
-    
     # 7. Aplicar el pipeline
     try:
         X_processed = PIPELINE.transform(df_final)
-        print(f"✅ Preprocesamiento exitoso. Shape: {X_processed.shape}")
         return X_processed.astype(np.float32)
     except Exception as e:
         print(f"❌ Error en pipeline.transform: {e}")
-        print(f"   DataFrame shape: {df_final.shape}")
-        print(f"   DataFrame columns: {df_final.columns.tolist()}")
         raise
-
 # =============================================================================
 # LOADERS
 # =============================================================================
