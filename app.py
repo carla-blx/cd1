@@ -367,6 +367,20 @@ if predict_button:
         """
 
         color_clase = "#2E8B57"
+    # DIAGNÓSTICO - Mostrar valores intermedios
+    with st.expander("🔍 Diagnóstico (valores intermedios)"):
+        st.write("**Datos de entrada procesados:**")
+        st.write(f"Shape de X_processed: {X_processed.shape}")
+        st.write(f"Rango de valores: min={X_processed.min():.4f}, max={X_processed.max():.4f}")
+        st.write(f"Media: {X_processed.mean():.4f}")
+        st.write(f"Desviación: {X_processed.std():.4f}")
+        
+        # Mostrar primeras 10 features
+        st.write("**Primeras 10 features del vector:**")
+        for i, val in enumerate(X_processed[0][:10]):
+            st.write(f"  Feature {i}: {val:.4f}")
+        
+        st.write("**Probabilidad cruda:**", proba)
 
     # ========================================================
     # TARJETA RESULTADO
@@ -442,6 +456,7 @@ if predict_button:
             fig,
             use_container_width=True
         )
+        
 
 # =============================================================================
 # MÉTRICAS
