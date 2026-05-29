@@ -83,6 +83,46 @@ def create_pipeline():
     print(f"Columnas numéricas: {len(NUM_COLS)}")
     print(f"Columnas categóricas: {CAT_COLS}")
     
+    # Crear datos dummy REALISTAS para entrenar el scaler
+    np.random.seed(42)
+    n_dummy_samples = 1000
+    
+    dummy_data = {}
+    
+    # Datos numéricos con rangos realistas
+    dummy_data['LIMIT_BAL'] = np.random.uniform(10000, 1000000, n_dummy_samples)
+    dummy_data['AGE'] = np.random.uniform(18, 80, n_dummy_samples)
+    
+    # PAY_* valores entre -2 y 8
+    for i in range(1, 7):
+        dummy_data[f'PAY_{i}'] = np.random.randint(-2, 9, n_dummy_samples)
+    
+    # BILL_AMT* valores entre 0 y 500000
+    for i in range(1, 7):
+        dummy_data[f'BILL_AMT{i}'] = np.random.uniform(0, 500000, n_dummy_samples)
+    
+    # PAY_AMT* valores entre 0 y 200000
+    for i in range(1, 7):
+        dummy_data[f'PAY_AMT{i}'] = np.random.uniform(0, 200000, n_dummy_samples)
+    
+    # Features derivadas (se calcularán después)
+    dummy_data['ratio_pago'] = np.random.uniform(0, 1, n_dummy_samples)
+    dummy_data['meses_mora'] = np.random.randint(0, 7, n_dummy_samples)
+    dummy_data['max_mora'] = np.random.randint(0, 9, n_dummy_samples)
+    dummy_data['tendencia_mora'] = np.random.randint(-8, 8, n_dummy_samples)
+    dummy_data['log_limit_bal'] = np.log1p(dummy_data['LIMIT_BAL'])
+    
+    # Datos categóricos
+    dummy_data['SEX'] = np.random.choice([1, 2], n_dummy_samples)
+    dummy_data['EDUCATION'] = np.random.choice([1, 2, 3, 4], n_dummy_samples)
+    dummy_data['MARRIAGE'] = np.random.choice([1, 2, 3], n_dummy_samples)
+    
+    dummy_df = pd.DataFrame(dummy_data)
+    
+    # Asegurar el orden de columnas
+    dummy_df = dummy_df[NUM_COLS + CAT_COLS]
+    
+    # Crear y entrenar el pipeline
     numeric_transformer = StandardScaler()
     categorical_transformer = OneHotEncoder(drop='first', sparse_output=False, handle_unknown='ignore')
     
@@ -93,32 +133,16 @@ def create_pipeline():
         ]
     )
     
-    # Crear datos dummy para entrenar el pipeline
-    # Incluir todas las combinaciones posibles de categorías
-    dummy_data_list = []
-    
-    for sex in [1, 2]:
-        for edu in [1, 2, 3, 4]:
-            for marriage in [1, 2, 3]:
-                row = {}
-                # Valores numéricos en 0
-                for col in NUM_COLS:
-                    row[col] = 0
-                # Valores categóricos
-                row['SEX'] = sex
-                row['EDUCATION'] = edu
-                row['MARRIAGE'] = marriage
-                dummy_data_list.append(row)
-    
-    dummy_df = pd.DataFrame(dummy_data_list)
+    # Entrenar el pipeline
     PIPELINE.fit(dummy_df)
     
-    # Verificar dimensiones
+    # Verificar que funciona
     test_output = PIPELINE.transform(dummy_df.head(1))
-    print(f"✅ Pipeline creado. Output shape: {test_output.shape[1]} features")
+    print(f"✅ Pipeline entrenado. Output shape: {test_output.shape[1]}")
+    print(f"   Rango de salida - min: {test_output.min():.4f}, max: {test_output.max():.4f}")
     
     return PIPELINE
-
+    
 # =============================================================================
 # PREPROCESAMIENTO PRINCIPAL
 # =============================================================================
