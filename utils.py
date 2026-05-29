@@ -171,6 +171,40 @@ def preprocess_input(data_dict: dict) -> np.ndarray:
     except Exception as e:
         print(f"❌ Error en pipeline.transform: {e}")
         raise
+
+def recreate_pipeline_from_vars():
+    """Recrea el pipeline usando las variables globales"""
+    global PIPELINE, NUM_COLS, CAT_COLS
+    
+    try:
+        from sklearn.compose import ColumnTransformer
+        from sklearn.preprocessing import StandardScaler, OneHotEncoder
+        
+        # Verificar que las columnas estén definidas
+        if not NUM_COLS or not CAT_COLS:
+            print("❌ No se definieron NUM_COLS o CAT_COLS")
+            return False
+        
+        numeric_transformer = StandardScaler()
+        categorical_transformer = OneHotEncoder(drop='first', sparse_output=False, handle_unknown='ignore')
+        
+        PIPELINE = ColumnTransformer(
+            transformers=[
+                ('num', numeric_transformer, NUM_COLS),
+                ('cat', categorical_transformer, CAT_COLS)
+            ]
+        )
+        
+        # Entrenar el pipeline con datos dummy
+        dummy_data = pd.DataFrame(columns=NUM_COLS + CAT_COLS)
+        dummy_data.loc[0] = [0] * len(NUM_COLS + CAT_COLS)
+        PIPELINE.fit(dummy_data)
+        
+        print("✅ Pipeline recreado exitosamente")
+        return True
+    except Exception as e:
+        print(f"❌ Error recreando pipeline: {e}")
+        return False
 # =============================================================================
 # LOADERS
 # =============================================================================
