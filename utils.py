@@ -23,10 +23,22 @@ def load_pipeline():
     """Carga el pipeline completo entrenado en Colab"""
     global FEATURES_FINALES, NUM_COLS, CAT_COLS, P01_RATIO, P99_RATIO, PIPELINE
     
+    # Intentar con joblib primero
     try:
-        with open('preprocessing_pipeline.pkl', 'rb') as f:
-            pipeline_dict = pickle.load(f)
-        
+        import joblib
+        pipeline_dict = joblib.load('preprocessing_pipeline.pkl')
+        print("✅ Pipeline cargado con joblib")
+    except:
+        # Si falla, intentar con pickle
+        try:
+            with open('preprocessing_pipeline.pkl', 'rb') as f:
+                pipeline_dict = pickle.load(f)
+            print("✅ Pipeline cargado con pickle")
+        except Exception as e:
+            print(f"❌ Error cargando pipeline: {e}")
+            return None
+    
+    try:
         # Extraer el pipeline real
         PIPELINE = pipeline_dict['preprocessing_pipeline']
         
@@ -44,7 +56,7 @@ def load_pipeline():
         
         return PIPELINE
     except Exception as e:
-        print(f"❌ Error cargando pipeline: {e}")
+        print(f"❌ Error extrayendo datos del pipeline: {e}")
         return None
 
 # Cargar pipeline al inicio
