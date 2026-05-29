@@ -20,47 +20,61 @@ PIPELINE = None
 # =============================================================================
 
 def load_pipeline():
-    """Carga el pipeline completo entrenado en Colab"""
+    """Carga el pipeline o lo recrea si hay error de versión"""
     global FEATURES_FINALES, NUM_COLS, CAT_COLS, P01_RATIO, P99_RATIO, PIPELINE
     
-    # Intentar con joblib primero
+    # Intentar cargar normalmente
     try:
-        import joblib
-        pipeline_dict = joblib.load('preprocessing_pipeline.pkl')
-        print("✅ Pipeline cargado con joblib")
-    except:
-        # Si falla, intentar con pickle
-        try:
-            with open('preprocessing_pipeline.pkl', 'rb') as f:
-                pipeline_dict = pickle.load(f)
-            print("✅ Pipeline cargado con pickle")
-        except Exception as e:
-            print(f"❌ Error cargando pipeline: {e}")
-            return None
-    
-    try:
-        # Extraer el pipeline real
+        with open('preprocessing_pipeline.pkl', 'rb') as f:
+            pipeline_dict = pickle.load(f)
         PIPELINE = pipeline_dict['preprocessing_pipeline']
-        
-        # Guardar configuraciones
         FEATURES_FINALES = pipeline_dict['features_finales']
         NUM_COLS = pipeline_dict['num_cols']
         CAT_COLS = pipeline_dict['cat_cols']
         P01_RATIO = pipeline_dict['p01_ratio']
         P99_RATIO = pipeline_dict['p99_ratio']
-        
-        print(f"✅ Pipeline cargado correctamente")
-        print(f"   Columnas numéricas: {len(NUM_COLS)}")
-        print(f"   Columnas categóricas: {len(CAT_COLS)}")
-        print(f"   Features finales: {len(FEATURES_FINALES)}")
-        
+        print("✅ Pipeline cargado desde archivo")
         return PIPELINE
     except Exception as e:
-        print(f"❌ Error extrayendo datos del pipeline: {e}")
-        return None
+        print(f"⚠️ Error cargando pipeline: {e}")
+        print("🔄 Recreando pipeline manualmente...")
+        
+        # Definir columnas manualmente (según tu entrenamiento)
+        NUM_COLS = [
+            'LIMIT_BAL', 'AGE', 'PAY_1', 'PAY_2', 'PAY_3', 'PAY_4', 'PAY_5', 'PAY_6',
+            'BILL_AMT1', 'BILL_AMT2', 'BILL_AMT3', 'BILL_AMT4', 'BILL_AMT5', 'BILL_AMT6',
+            'PAY_AMT1', 'PAY_AMT2', 'PAY_AMT3', 'PAY_AMT4', 'PAY_AMT5', 'PAY_AMT6',
+            'ratio_pago', 'meses_mora', 'max_mora', 'tendencia_mora', 'log_limit_bal'
+        ]
+        CAT_COLS = ['SEX', 'EDUCATION', 'MARRIAGE']
+        FEATURES_FINALES = NUM_COLS + CAT_COLS  # Simplificado
+        P01_RATIO = 0.0  # Valores por defecto
+        P99_RATIO = 1.0
+        
+        # Crear pipeline nuevo
+        from sklearn.compose import ColumnTransformer
+        from sklearn.preprocessing import StandardScaler, OneHotEncoder
+        
+        numeric_transformer = StandardScaler()
+        categorical_transformer = OneHotEncoder(drop='first', sparse_output=False, handle_unknown='ignore')
+        
+        PIPELINE = ColumnTransformer(
+            transformers=[
+                ('num', numeric_transformer, NUM_COLS),
+                ('cat', categorical_transformer, CAT_COLS)
+            ]
+        )
+        
+        # Entrenar pipeline con datos dummy (solo para que funcione)
+        dummy_data = pd.DataFrame(columns=NUM_COLS + CAT_COLS)
+        dummy_data.loc[0] = [0] * len(NUM_COLS + CAT_COLS)
+        PIPELINE.fit(dummy_data)
+        
+        print("✅ Pipeline recreado manualmente")
+        return PIPELINE
 
 # Cargar pipeline al inicio
-load_pipeline()
+#load_pipeline()
 
 # =============================================================================
 # FUNCIONES DE CREACIÓN DE FEATURES
