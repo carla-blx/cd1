@@ -38,12 +38,16 @@ PIPELINE = None
 # =============================================================================
 # CREACIÓN DEL PIPELINE MANUAL
 # =============================================================================
-
 def create_pipeline():
     """Crea el pipeline de preprocesamiento manualmente"""
     global PIPELINE
     
+    # Para depuración - ver cuántas categorías tiene cada variable
+    print(f"Columnas numéricas: {len(NUM_COLS)}")
+    print(f"Columnas categóricas: {CAT_COLS}")
+    
     numeric_transformer = StandardScaler()
+    # OneHotEncoder con drop='first' crea (n_categorias - 1) columnas por variable
     categorical_transformer = OneHotEncoder(drop='first', sparse_output=False, handle_unknown='ignore')
     
     PIPELINE = ColumnTransformer(
@@ -53,12 +57,35 @@ def create_pipeline():
         ]
     )
     
-    # Entrenar con datos dummy para que esté listo
+    # Crear datos dummy representativos para entrenar el pipeline
+    # Esto es importante para que el OneHotEncoder "aprenda" las categorías
     dummy_data = pd.DataFrame(columns=NUM_COLS + CAT_COLS)
-    dummy_data.loc[0] = [0] * len(NUM_COLS + CAT_COLS)
+    
+    # Valores representativos para categóricas
+    # SEX: 1 o 2
+    # EDUCATION: 1,2,3,4 (4 agrupa otros)
+    # MARRIAGE: 1,2,3
+    dummy_rows = []
+    for sex in [1, 2]:
+        for edu in [1, 2, 3, 4]:
+            for marriage in [1, 2, 3]:
+                row = [0] * len(NUM_COLS + CAT_COLS)
+                # Establecer valores categóricos
+                row[NUM_COLS + CAT_COLS.index('SEX')] = sex
+                row[NUM_COLS + CAT_COLS.index('EDUCATION')] = edu
+                row[NUM_COLS + CAT_COLS.index('MARRIAGE')] = marriage
+                dummy_rows.append(row)
+    
+    dummy_data = pd.DataFrame(dummy_rows, columns=NUM_COLS + CAT_COLS)
+    dummy_data[NUM_COLS] = 0  # Valores numéricos en cero
+    
     PIPELINE.fit(dummy_data)
     
-    print("✅ Pipeline creado manualmente")
+    # Verificar dimensiones después de fit
+    dummy_transformed = PIPELINE.transform(dummy_data.head(1))
+    print(f"✅ Pipeline creado. Dimensiones de salida: {dummy_transformed.shape[1]} features")
+    print(f"   (Esperado: 31 = 25 numéricas + 6 categóricas)")
+    
     return PIPELINE
 
 # =============================================================================
